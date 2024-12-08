@@ -1,140 +1,187 @@
 package Day4
 
+import Day4.Direction.{Down, Left_Diagonal, Top}
+
 import java.util
 import scala.collection.mutable
 
 
 val XMAS = "XMAS"
 
+enum Direction {
+  case Left, Right, Top, Down, Left_Diagonal, Right_Diagonal, Right_Right_Diagonal, Left_Right_Diagonal
+}
 
-case class XMASNode(content:Char, id:(Int, Int)){}
-/**
- *  Used to carry the current search data
- * @param payload, content of the current string
- * @param visited, all the nodes' id visited
- * @param index, index of the XMAS string that it is looking for
- */
-class Payload(val payload:String, var lastId:(Int, Int), var index:Int, var path:Set[(Int, Int)]){}
+enum X_MAS {
+  case Left_Diagonal, Right_Diagonal
+}
+
+val MAS = "MAS"
+
+
+class Board(val height: Int, val width: Int, val graph: mutable.Map[(Int, Int), Char], val search: String) {
+  private val paths: mutable.Set[Array[(Int, Int)]] = mutable.Set()
+
+  def minesweeper(): Int = {
+    var count: Int = 0
+
+    for (y <- 0 until height) {
+      for (x <- 0 until width) {
+        //        println(s"X: ${x}, Y:${y}")
+        //        println(count)
+        val left: Int = if (this._matcher(x, y, Direction.Left)) 1 else 0
+        val right: Int = if (this._matcher(x, y, Direction.Right)) 1 else 0
+        val top: Int = if (this._matcher(x, y, Direction.Top)) 1 else 0
+        val down: Int = if (this._matcher(x, y, Direction.Down)) 1 else 0
+        val leftDiagonal: Int = if (this._matcher(x, y, Direction.Left_Diagonal)) 1 else 0
+        val rightDiagonal: Int = if (this._matcher(x, y, Direction.Right_Diagonal)) 1 else 0
+        val rightRightDiagonal: Int = if (this._matcher(x, y, Direction.Right_Right_Diagonal)) 1 else 0
+        val leftRightDiagonal: Int = if (this._matcher(x, y, Direction.Left_Right_Diagonal)) 1 else 0
+        count = count + left + right + top + down + leftDiagonal + rightDiagonal + rightRightDiagonal + leftRightDiagonal
+      }
+    }
+    count
+  }
+
+  private def _sweeper(x: Int, y: Int, func: (Int, Int, Int) => (Int, Int)): String = {
+    var content: String = ""
+    val routes: Array[(Int, Int)] = Array.fill(this.search.length)((0, 0))
+    for (i <- 0 until this.search.length) {
+      val key: (Int, Int) = func(x, y, i)
+      routes(i) = key
+      content += this.graph.getOrElse(key, "")
+    }
+
+
+    if (this.paths.contains(routes)) {
+      "THIS IS WRONG BRO"
+    } else {
+      this.paths.add(routes)
+      content
+    }
+  }
+
+  private def _matcher(x: Int, y: Int, direction: Direction): Boolean = {
+    direction match {
+      case left if direction == Direction.Left => {
+        val leftF: (Int, Int, Int) => (Int, Int) = (xAxis: Int, yAxis: Int, i: Int) => {
+          (xAxis - i, yAxis)
+        }
+        this._sweeper(x, y, leftF) == this.search
+      }
+      case right if direction == Direction.Right => {
+        val rightF: (Int, Int, Int) => (Int, Int) = (xAxis: Int, yAxis: Int, i: Int) => {
+          (xAxis + i, yAxis)
+        }
+        this._sweeper(x, y, rightF) == this.search
+      }
+      case top if direction == Direction.Top => {
+        val topF: (Int, Int, Int) => (Int, Int) = (xAxis: Int, yAxis: Int, i: Int) => {
+          (xAxis, yAxis - i)
+        }
+        this._sweeper(x, y, topF) == this.search
+      }
+      case down if direction == Direction.Down => {
+        val downF: (Int, Int, Int) => (Int, Int) = (xAxis: Int, yAxis: Int, i: Int) => {
+          (xAxis, yAxis + i)
+        }
+        this._sweeper(x, y, downF) == this.search
+      }
+      case left_diagonal if direction == Direction.Left_Diagonal => {
+        val leftDiagonalF: (Int, Int, Int) => (Int, Int) = (xAxis: Int, yAxis: Int, i: Int) => {
+          (xAxis - i, yAxis - i)
+        }
+        this._sweeper(x, y, leftDiagonalF) == this.search
+      }
+      case right_diagonal if direction == Direction.Right_Diagonal => {
+        val rightDiagonalF: (Int, Int, Int) => (Int, Int) = (xAxis: Int, yAxis: Int, i: Int) => {
+          (xAxis + i, yAxis + i)
+        }
+        this._sweeper(x, y, rightDiagonalF) == this.search
+      }
+      case right_right_diagonal if direction == Direction.Right_Right_Diagonal => {
+        val rightRightDiagonalF: (Int, Int, Int) => (Int, Int) = (xAxis: Int, yAxis: Int, i: Int) => {
+          (xAxis + i, yAxis - i)
+        }
+        this._sweeper(x, y, rightRightDiagonalF) == this.search
+      }
+      case left_right_diagonal if direction == Direction.Left_Right_Diagonal => {
+        val leftRightDiagonalF: (Int, Int, Int) => (Int, Int) = (xAxis: Int, yAxis: Int, i: Int) => {
+          (xAxis - i, yAxis + i)
+        }
+        this._sweeper(x, y, leftRightDiagonalF) == this.search
+      }
+
+      case _: Day4.Direction => {
+        println("Nothing match")
+        false
+      }
+    }
+  }
+
+  private def _crossword(x: Int, y: Int): Boolean = {
+    val leftDown: Boolean = this.graph.getOrElse((x - 1, y - 1), 'I').toString + this.graph.getOrElse((x, y), 'N') + this.graph.getOrElse((x + 1, y + 1), 'A') == MAS || (this.graph.getOrElse((x - 1, y - 1), 'I').toString + this.graph.getOrElse((x, y), 'N') + this.graph.getOrElse((x + 1, y + 1), 'A')).reverse == MAS
+
+    val rightUp: Boolean = (this.graph.getOrElse((x + 1, y - 1), 'I').toString + this.graph.getOrElse((x, y), 'N') + this.graph.getOrElse((x - 1, y + 1), 'A') == MAS ) || (this.graph.getOrElse((x + 1, y - 1), 'I').toString + this.graph.getOrElse((x, y), 'N') + this.graph.getOrElse((x - 1, y + 1), 'A')).reverse == MAS
+
+    println((this.graph.getOrElse((x - 1, y - 1), 'I').toString + this.graph.getOrElse((x, y), 'N') + this.graph.getOrElse((x + 1, y + 1), 'A')))
+    println((this.graph.getOrElse((x + 1, y - 1), 'I').toString + this.graph.getOrElse((x, y), 'N') + this.graph.getOrElse((x - 1, y + 1), 'A')))
+    println(leftDown && rightUp)
+
+
+    leftDown && rightUp
+  }
+
+
+  def crosswordChecker(): Int = {
+    var count:Int = 0
+    for (y <- 0 until height) {
+      for (x <- 0 until width) {
+        val current:Int = if (this._crossword(x, y)) 1 else 0
+        count += current
+      }
+    }
+    count
+  }
+}
 
 
 class Day4 extends Solution {
   override def ProblemOne(filename: String): Unit = {
     val lines: Seq[String] = ReadPuzzle(filename)
-    val graph:mutable.Map[(Int, Int), XMASNode] = mutable.Map()
+    val graph: mutable.Map[(Int, Int), Char] = mutable.Map()
     val row = lines.length
     val col = lines.head.split("").length
     // Creating the graph
     for (y <- lines.indices) {
-      val splitContent:Array[Char] = lines(y).toCharArray
-      for (x <- splitContent.indices){
-        val content:Char = splitContent(x)
-        val id:(Int, Int)= (x, y)
-        graph(id) = XMASNode(content = content, id = id)
+      val splitContent: Array[Char] = lines(y).toCharArray
+      for (x <- splitContent.indices) {
+        val content: Char = splitContent(x)
+        val id: (Int, Int) = (x, y)
+        graph(id) = content
       }
     }
 
-    var count:Int = 0
-    var visitedPath:mutable.Set[Set[(Int, Int)]] = mutable.Set()
-    // Going through the option
-    for (y <- 0 until row) {
-      for (x <- 0 until col) {
-        val rootNode: XMASNode = graph((x, y))
-        if (rootNode.content == XMAS(0)) {
-          val rootPayload: Payload = new Payload(payload = "" + rootNode.content, lastId=rootNode.id, index = 0, path = Set(rootNode.id))
-          val queue: mutable.Queue[Payload] = new mutable.Queue[Payload]()
-          // Enqueuing and adding it as visted
-          queue.enqueue(rootPayload)
-
-          // Visited nodes
-          val visited:mutable.Set[(Int, Int)] = mutable.Set()
-          visited += rootNode.id
-
-          // BFS search as long as it is not empty
-          while (queue.nonEmpty) {
-            val currentPayload:Payload = queue.dequeue()
-            println(currentPayload.path)
-            println(currentPayload.payload)
-            if (currentPayload.payload == XMAS && !visited.contains(currentPayload.lastId) && !visitedPath.contains(currentPayload.path)){
-              visitedPath.add(currentPayload.path)
-              count += 1
-            } else {
-              // Up
-              val upNode: Option[XMASNode] = Option(graph.getOrElse((currentPayload.lastId._1, currentPayload.lastId._2 - 1), null))
-              if (currentPayload.payload.length < XMAS.length && upNode.nonEmpty && upNode.get.content == XMAS(currentPayload.index + 1) && !visited.contains(upNode.get.id)) {
-                // Keep track of all visited nodes and enqueue the nodes into current queue
-                val upPayload: Payload = new Payload(payload = currentPayload.payload + upNode.get.content, lastId = upNode.get.id, index = currentPayload.index + 1, path = currentPayload.path + upNode.get.id)
-                queue.enqueue(upPayload)
-              }
-
-
-              // Down
-              val downNode: Option[XMASNode] = Option(graph.getOrElse((currentPayload.lastId._1, currentPayload.lastId._2 + 1), null))
-              if (currentPayload.payload.length < XMAS.length && downNode.nonEmpty && downNode.get.content == XMAS(currentPayload.index + 1) && !visited.contains(downNode.get.id)) {
-                // Keep track of all visited nodes and enqueue the nodes into current queue
-                val downPayload: Payload = new Payload(payload = currentPayload.payload + downNode.get.content, lastId = downNode.get.id, index = currentPayload.index + 1, path = currentPayload.path + downNode.get.id)
-                queue.enqueue(downPayload)
-              }
-
-
-              // Left
-              val leftNode: Option[XMASNode] = Option(graph.getOrElse((currentPayload.lastId._1 - 1, currentPayload.lastId._2), null))
-              if (currentPayload.payload.length < XMAS.length && leftNode.nonEmpty && leftNode.get.content == XMAS(currentPayload.index + 1) && !visited.contains(leftNode.get.id)) {
-                // Keep track of all visited nodes and enqueue the nodes into current queue
-                val leftPayload: Payload = new Payload(payload = currentPayload.payload + leftNode.get.content, lastId = leftNode.get.id, index = currentPayload.index + 1, path = currentPayload.path + leftNode.get.id)
-                queue.enqueue(leftPayload)
-              }
-
-
-              // Right
-              val rightNode: Option[XMASNode] = Option(graph.getOrElse((currentPayload.lastId._1 + 1, currentPayload.lastId._2), null))
-              if (currentPayload.payload.length < XMAS.length && rightNode.nonEmpty && rightNode.get.content == XMAS(currentPayload.index + 1) && !visited.contains(rightNode.get.id)) {
-                val rightPayload: Payload = new Payload(payload = currentPayload.payload + rightNode.get.content, lastId = rightNode.get.id, index = currentPayload.index + 1, path = currentPayload.path + rightNode.get.id)
-                queue.enqueue(rightPayload)
-              }
-
-
-              // Left Up Diagonal
-              val leftUpDiagonal: Option[XMASNode] = Option(graph.getOrElse((currentPayload.lastId._1 - 1, currentPayload.lastId._2 - 1), null))
-              if (currentPayload.payload.length < XMAS.length && leftUpDiagonal.nonEmpty && leftUpDiagonal.get.content == XMAS(currentPayload.index + 1) && !visited.contains(leftUpDiagonal.get.id)) {
-                val  leftUpDiagonalPayload = new Payload(payload = currentPayload.payload + leftUpDiagonal.get.content, lastId = leftUpDiagonal.get.id, index = currentPayload.index + 1, path = currentPayload.path + leftUpDiagonal.get.id)
-                queue.enqueue(leftUpDiagonalPayload)
-              }
-
-              // Right Up Diagonal
-              val rightUpDiagonal: Option[XMASNode] = Option(graph.getOrElse((currentPayload.lastId._1 - 1, currentPayload.lastId._2 + 1), null))
-              if (currentPayload.payload.length < XMAS.length && rightUpDiagonal.nonEmpty && rightUpDiagonal.get.content == XMAS(currentPayload.index + 1) && !visited.contains(rightUpDiagonal.get.id)) {
-                val rightUpDiagonalPayload: Payload = new Payload(payload = currentPayload.payload + rightUpDiagonal.get.content, lastId = rightUpDiagonal.get.id, index = currentPayload.index + 1, path = currentPayload.path + rightUpDiagonal.get.id)
-                queue.enqueue(rightUpDiagonalPayload)
-              }
-
-              // Left Down Diagonal
-              val leftDownDiagonal: Option[XMASNode] = Option(graph.getOrElse((currentPayload.lastId._1 + 1, currentPayload.lastId._2 - 1), null))
-              if (currentPayload.payload.length < XMAS.length && leftDownDiagonal.nonEmpty && leftDownDiagonal.get.content == XMAS(currentPayload.index + 1) && !visited.contains(leftDownDiagonal.get.id)) {
-                val leftDownDiagonalPayload: Payload = new Payload(payload = currentPayload.payload + leftDownDiagonal.get.content, lastId = leftDownDiagonal.get.id, index = currentPayload.index + 1, path = currentPayload.path + leftDownDiagonal.get.id)
-                queue.enqueue(leftDownDiagonalPayload)
-              }
-
-
-              // Right Down Diagonal
-              val rightDownDiagonal: Option[XMASNode] = Option(graph.getOrElse((currentPayload.lastId._1 + 1, currentPayload.lastId._2 + 1), null))
-              if (currentPayload.payload.length < XMAS.length && rightDownDiagonal.nonEmpty && rightDownDiagonal.get.content == XMAS(currentPayload.index + 1) && !visited.contains(rightDownDiagonal.get.id)) {
-                val rightDownDiagonalPayload: Payload = new Payload(payload = currentPayload.payload + rightDownDiagonal.get.content, lastId = rightDownDiagonal.get.id, index = currentPayload.index + 1, path = currentPayload.path + rightDownDiagonal.get.id)
-                queue.enqueue(rightDownDiagonalPayload)
-              }
-
-
-            }
-
-            visited += currentPayload.lastId
-          }
-        }
-      }
-    }
-    println(count)
+    val board: Board = new Board(row, col, graph, XMAS)
+    println(board.minesweeper())
   }
 
-  override def ProblemTwo(filename: String): Unit =  {
+  override def ProblemTwo(filename: String): Unit = {
     val lines: Seq[String] = ReadPuzzle(filename)
+    val graph: mutable.Map[(Int, Int), Char] = mutable.Map()
+    val row = lines.length
+    val col = lines.head.split("").length
+    // Creating the graph
+    for (y <- lines.indices) {
+      val splitContent: Array[Char] = lines(y).toCharArray
+      for (x <- splitContent.indices) {
+        val content: Char = splitContent(x)
+        val id: (Int, Int) = (x, y)
+        graph(id) = content
+      }
+    }
 
+    val board: Board = new Board(row, col, graph, XMAS)
+    println(board.crosswordChecker())
   }
 }
