@@ -16,7 +16,7 @@ def main(): Unit =
 //  Day3MullItOver.MullItOver().ProblemTwo("test")
 //  Day3MullItOver.MullItOver().ProblemTwo("puzzel3")
   Day4.Day4().ProblemOne("test")
-  Day4.Day4().ProblemOne("puzzel4")
+//  Day4.Day4().ProblemOne("puzzel4")
 //  Day4.Day4().ProblemTwo("test")
 //  Day4.Day4().ProblemTwo("puzzel4")
 
