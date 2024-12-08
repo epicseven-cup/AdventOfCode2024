@@ -18,5 +18,7 @@ def main(): Unit =
 //  Day4.Day4().ProblemOne("test")
 //  Day4.Day4().ProblemOne("puzzel4")
 //  Day4.Day4().ProblemTwo("test")
-  Day4.Day4().ProblemTwo("puzzel4")
+//  Day4.Day4().ProblemTwo("puzzel4")
+//  Day5_PrintQueue.PrintQueue().ProblemOne("test")
+  Day5_PrintQueue.PrintQueue().ProblemOne("puzzel5")
 
