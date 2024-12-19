@@ -20,5 +20,9 @@ def main(): Unit =
 //  Day4.Day4().ProblemTwo("test")
 //  Day4.Day4().ProblemTwo("puzzel4")
 //  Day5_PrintQueue.PrintQueue().ProblemOne("test")
-  Day5_PrintQueue.PrintQueue().ProblemOne("puzzel5")
+//  Day5_PrintQueue.PrintQueue().ProblemOne("puzzel5")
+//  Day5_PrintQueue.PrintQueue().ProblemTwo("test")
+//  Day5_PrintQueue.PrintQueue().ProblemTwo("puzzel5")
+//  Day6.GuardGallivant().ProblemOne("test")
+  Day6.GuardGallivant().ProblemOne("puzzel6")
 
